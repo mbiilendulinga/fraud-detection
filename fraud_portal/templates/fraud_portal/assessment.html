@@ -1,0 +1,82 @@
+{% extends "fraud_portal/base.html" %}
+
+{% block title %}Score a transaction{% endblock %}
+{% block topbar_title %}Fraud Detection{% endblock %}
+{% block topbar_crumb %}Score a transaction{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+    <h1>Score a transaction</h1>
+    <p>Enter transaction and customer details. The model returns a fraud probability and the key drivers.</p>
+</div>
+
+<form method="post" novalidate>
+{% csrf_token %}
+
+<div class="card">
+    <div class="form-section">
+        <div class="form-section__title">Transaction</div>
+        <div class="form-section__sub">What is being done, where, and for how much.</div>
+
+        <div class="form-grid">
+            {% for field in form %}
+                {% if field.name in "amount transaction_type channel payment_method transaction_hour is_weekend is_international transaction_country transaction_province" %}
+                    <div class="form-field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}<div class="error">{{ field.errors.0 }}</div>{% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="form-section">
+        <div class="form-section__title">Customer</div>
+        <div class="form-section__sub">Who is transacting, and what does their profile look like.</div>
+
+        <div class="form-grid">
+            {% for field in form %}
+                {% if field.name in "home_province client_segment client_risk_rating monthly_income avg_monthly_spend avg_monthly_transactions" %}
+                    <div class="form-field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}<div class="error">{{ field.errors.0 }}</div>{% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="form-section">
+        <div class="form-section__title">Recent behaviour</div>
+        <div class="form-section__sub">Velocity and novelty signals — the strongest fraud indicators.</div>
+
+        <div class="form-grid">
+            {% for field in form %}
+                {% if field.name in "is_new_device transactions_last_1h transactions_last_24h is_new_transaction_province" %}
+                    <div class="form-field">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}<div class="error">{{ field.errors.0 }}</div>{% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn">
+            <i class="fas fa-bolt"></i>
+            Analyze transaction
+        </button>
+        <a href="{% url 'fraud_portal:assessment' %}" class="btn btn--ghost">
+            Reset
+        </a>
+    </div>
+</div>
+
+</form>
+
+{% endblock %}

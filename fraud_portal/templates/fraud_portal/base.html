@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}Fraud Detection{% endblock %}</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="{% static 'css/fraud_detection.css' %}?v1">
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="brand">
+        <div class="brand__mark"><i class="fas fa-shield-halved"></i></div>
+        <div class="brand__name">Fraud Detection <span>Console</span></div>
+    </div>
+
+    <nav class="nav">
+        <div class="nav__section">Workspace</div>
+
+        <a href="{% url 'fraud_portal:home' %}"
+           class="nav__item {% if active == 'overview' %}active{% endif %}">
+            <i class="fas fa-house"></i><span>Overview</span>
+        </a>
+
+        <a href="{% url 'fraud_portal:assessment' %}"
+           class="nav__item {% if active == 'assessment' %}active{% endif %}">
+            <i class="fas fa-magnifying-glass-dollar"></i><span>Score a transaction</span>
+        </a>
+
+        <div class="nav__section">Model</div>
+
+        <a href="{% url 'fraud_portal:model' %}"
+           class="nav__item {% if active == 'model' %}active{% endif %}">
+            <i class="fas fa-chart-line"></i><span>Model performance</span>
+        </a>
+
+        <a href="{% url 'fraud_portal:methodology' %}"
+           class="nav__item {% if active == 'methodology' %}active{% endif %}">
+            <i class="fas fa-book"></i><span>Methodology</span>
+        </a>
+
+        <div class="nav__section">Elsewhere</div>
+
+        <a href="{% url 'projects' %}" class="nav__item">
+            <i class="fas fa-arrow-left"></i><span>Back to projects</span>
+        </a>
+
+        <a href="{% url 'home' %}" class="nav__item">
+            <i class="fas fa-globe"></i><span>Back to mbiile.com</span>
+        </a>
+    </nav>
+</aside>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<div class="main">
+    <header class="topbar">
+        <button class="topbar__menu" id="menuToggle" aria-label="Toggle menu">
+            <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="topbar__title">{% block topbar_title %}Fraud Detection{% endblock %}</div>
+        <div class="topbar__sep"></div>
+        <div class="topbar__crumb">{% block topbar_crumb %}{% endblock %}</div>
+    </header>
+
+    <main class="content">
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+<script src="{% static 'js/fraud_detection.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+{% extends "fraud_portal/base.html" %}
+
+{% block title %}Model performance{% endblock %}
+{% block topbar_title %}Fraud Detection{% endblock %}
+{% block topbar_crumb %}Model performance{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+    <h1>Model performance</h1>
+    <p>{{ model_name }} · {{ features_used }} features · threshold {{ threshold|floatformat:4 }}</p>
+</div>
+
+<div class="metric-grid">
+    <div class="metric">
+        <div class="metric__label">PR-AUC (test)</div>
+        <div class="metric__value">{{ test.pr_auc|floatformat:4 }}</div>
+        <div class="metric__sub">validation {{ validation.pr_auc|floatformat:4 }}</div>
+    </div>
+    <div class="metric">
+        <div class="metric__label">ROC-AUC (test)</div>
+        <div class="metric__value">{{ test.roc_auc|floatformat:4 }}</div>
+        <div class="metric__sub">validation {{ validation.roc_auc|floatformat:4 }}</div>
+    </div>
+    <div class="metric">
+        <div class="metric__label">Recall (test)</div>
+        <div class="metric__value">{{ test.recall|floatformat:4 }}</div>
+        <div class="metric__sub">precision {{ test.precision|floatformat:4 }}</div>
+    </div>
+    <div class="metric">
+        <div class="metric__label">F1 (test)</div>
+        <div class="metric__value">{{ test.f1|floatformat:4 }}</div>
+        <div class="metric__sub">best F1 {{ best_f1|floatformat:4 }} @ {{ best_f1_threshold|floatformat:4 }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card__title">Confusion at operational threshold</div>
+    <div class="card__sub">Counts of each outcome on the test set.</div>
+
+    <table class="dtable">
+        <thead>
+            <tr>
+                <th>Outcome</th>
+                <th class="num">Count</th>
+                <th>Meaning</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>True positives</td>
+                <td class="num strong">{{ test.true_positives }}</td>
+                <td>Fraud correctly flagged</td>
+            </tr>
+            <tr>
+                <td>False positives</td>
+                <td class="num strong">{{ test.false_positives }}</td>
+                <td>Legitimate flagged as fraud</td>
+            </tr>
+            <tr>
+                <td>False negatives</td>
+                <td class="num strong">{{ test.false_negatives }}</td>
+                <td>Fraud missed</td>
+            </tr>
+            <tr>
+                <td>True negatives</td>
+                <td class="num strong">{{ test.true_negatives }}</td>
+                <td>Legitimate correctly cleared</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div class="figure-grid" style="margin-top:24px">
+    {% for file, title, caption in plots %}
+        <div class="figure">
+            <img src="{% url 'fraud_portal:plot' file %}" alt="{{ title }}">
+            <div class="figure__caption">
+                <strong>{{ title }}</strong><br>{{ caption }}
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% if segments %}
+<div class="card" style="margin-top:24px">
+    <div class="card__title">Recall by segment</div>
+    <div class="card__sub">Which fraud patterns the model catches most reliably.</div>
+
+    <table class="dtable">
+        <thead>
+            <tr>
+                <th>Segment</th>
+                <th class="num">Fraud cases</th>
+                <th class="num">Recall</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in segments %}
+                <tr>
+                    <td>{{ s.segment }}</td>
+                    <td class="num">{{ s.n_fraud }}</td>
+                    <td class="num strong">{{ s.recall|floatformat:4 }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% endblock %}

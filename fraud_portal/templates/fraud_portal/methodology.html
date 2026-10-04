@@ -1,0 +1,92 @@
+{% extends "fraud_portal/base.html" %}
+
+{% block title %}Methodology{% endblock %}
+{% block topbar_title %}Fraud Detection{% endblock %}
+{% block topbar_crumb %}Methodology{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+    <h1>Methodology</h1>
+    <p>How the dataset, features, and model were built.</p>
+</div>
+
+<div class="card">
+    <div class="prose">
+        <h3>1. Dataset</h3>
+        <p>
+            The dataset is synthetic and deliberately realistic. It contains
+            5,000 clients with income, occupation, risk rating and a home
+            province; and 100,000 transactions spread across a four-year
+            observation window (January 2022 to September 2026).
+            Fraud is injected at a rate of 1.7%, using five distinct
+            fraud patterns:
+        </p>
+        <ul>
+            <li><strong>Account takeover</strong> — new device, foreign login, overnight hour, unusually large transfer.</li>
+            <li><strong>Card compromise</strong> — new device, POS or online, mismatched payment method.</li>
+            <li><strong>Velocity attack</strong> — many consecutive transactions within minutes.</li>
+            <li><strong>Geographic anomaly</strong> — transaction far from the client's home province.</li>
+            <li><strong>Merchant anomaly</strong> — high-risk merchant category the client has never used.</li>
+        </ul>
+
+        <h3>2. Feature engineering</h3>
+        <p>
+            Every feature is computed with strict temporal discipline —
+            no feature may use any transaction with a timestamp equal to
+            or later than the transaction being scored. This avoids the
+            most common source of inflated fraud-detection accuracy.
+        </p>
+        <p>82 predictors are grouped into nine families:</p>
+        <ul>
+            <li>Temporal — hour, day of week, weekend, night-time, business hours.</li>
+            <li>Balance — change, ratios, whether the account went negative.</li>
+            <li>Velocity — transactions and amounts in rolling 10min/1h/6h/24h/7d windows.</li>
+            <li>Behavioural — each client's own average, median, max, standard deviation.</li>
+            <li>Sequence — time and amount since the previous transaction.</li>
+            <li>Location — distance from home, distance from previous transaction, new-city flags.</li>
+            <li>Device — new device flags, per-client device counts, cross-client device usage.</li>
+            <li>Merchant — new merchant, merchant-level amount and frequency statistics.</li>
+            <li>Interactions — amount vs income, amount vs monthly spend, channel preference matches.</li>
+        </ul>
+
+        <h3>3. Models compared</h3>
+        <p>
+            A Logistic Regression baseline with class balancing, median
+            imputation, and one-hot encoding provides a reference point.
+            XGBoost handles the nonlinear interactions and class imbalance
+            natively via <code>scale_pos_weight</code>. The model with the
+            higher PR-AUC on the validation set becomes the production model.
+        </p>
+
+        <h3>4. Evaluation</h3>
+        <p>
+            Accuracy is meaningless for imbalanced fraud detection. The
+            primary metric is <strong>PR-AUC (average precision)</strong>,
+            supported by ROC-AUC, recall at precision ≥ 0.5, F1 at the
+            best threshold, and recall broken down by transaction segment
+            (night, large amount, new device, international, and so on).
+        </p>
+
+        <h3>5. Explainability</h3>
+        <p>
+            Every prediction is accompanied by SHAP values — one number
+            per feature, saying how much that feature moved the fraud
+            probability up or down relative to the base rate. This makes
+            the model auditable: analysts can see exactly which inputs
+            drove a flag.
+        </p>
+
+        <h3>6. Limitations</h3>
+        <p>
+            The synthetic fraud generator lets fraudulent transactions
+            overdraw the account, so balance-level features carry an
+            unusually strong signal here. In real banking this pattern is
+            present but weaker, because most fraud keeps the balance
+            positive. Other limitations: no beneficiary/payee features,
+            no IP geolocation, no cross-institution signals.
+        </p>
+    </div>
+</div>
+
+{% endblock %}

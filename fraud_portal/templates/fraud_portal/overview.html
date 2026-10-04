@@ -1,0 +1,82 @@
+{% extends "fraud_portal/base.html" %}
+
+{% block title %}Fraud Detection — Overview{% endblock %}
+{% block topbar_title %}Fraud Detection{% endblock %}
+{% block topbar_crumb %}Overview{% endblock %}
+
+{% block content %}
+
+<div class="hero">
+    <div class="pill">Machine learning · XGBoost · 100K transactions</div>
+    <h1>Detect fraudulent transactions in real time.</h1>
+    <p>
+        A production-shaped fraud detection system trained on a synthetic
+        banking dataset of 100,000 transactions across 5,000 clients.
+        It combines temporal, velocity, geographic, device-novelty and
+        behavioural features to score each transaction and explain the
+        reasoning behind the decision.
+    </p>
+    <div class="hero__actions">
+        <a href="{% url 'fraud_portal:assessment' %}" class="btn">
+            <i class="fas fa-magnifying-glass-dollar"></i>
+            Score a transaction
+        </a>
+        <a href="{% url 'fraud_portal:model' %}" class="btn btn--ghost">
+            <i class="fas fa-chart-line"></i>
+            See model performance
+        </a>
+    </div>
+</div>
+
+<div class="metric-grid">
+    <div class="metric">
+        <div class="metric__label">PR-AUC (test)</div>
+        <div class="metric__value">{{ metrics.pr_auc|floatformat:4 }}</div>
+        <div class="metric__sub">vs {{ metrics.val_pr_auc|floatformat:4 }} on validation</div>
+    </div>
+    <div class="metric">
+        <div class="metric__label">ROC-AUC</div>
+        <div class="metric__value">{{ metrics.roc_auc|floatformat:4 }}</div>
+        <div class="metric__sub">Clean separation of classes</div>
+    </div>
+    <div class="metric">
+        <div class="metric__label">Precision</div>
+        <div class="metric__value">{{ metrics.precision|floatformat:4 }}</div>
+        <div class="metric__sub">of flagged transactions are truly fraud</div>
+    </div>
+    <div class="metric">
+        <div class="metric__label">Recall</div>
+        <div class="metric__value">{{ metrics.recall|floatformat:4 }}</div>
+        <div class="metric__sub">of fraud transactions are caught</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card__title">What this does</div>
+    <div class="card__sub">An end-to-end fraud detection pipeline, not a notebook demo.</div>
+
+    <div class="prose">
+        <p>
+            Each transaction flows through a feature engineering step that
+            produces {{ features_used }} predictors — including how fast the
+            client is transacting, whether the amount is unusual for them,
+            whether they have ever used this device, and whether the
+            transaction location matches their home province.
+        </p>
+        <p>
+            The model outputs a fraud probability. If it crosses the
+            operational threshold ({{ threshold|floatformat:4 }}), the
+            transaction is flagged. Every flagged transaction also gets a
+            SHAP-based explanation showing which features pushed the score
+            up and which pulled it down.
+        </p>
+        <ul>
+            <li>Raw data: 100,000 transactions, 5,000 clients, 1.7% fraud.</li>
+            <li>Feature engineering: 82 predictors, all temporally leak-free.</li>
+            <li>Models compared: Logistic Regression baseline vs XGBoost.</li>
+            <li>Chosen model: <strong>{{ model_name }}</strong>, threshold {{ threshold|floatformat:4 }}.</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

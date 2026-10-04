@@ -1,0 +1,138 @@
+{% extends "fraud_portal/base.html" %}
+
+{% block title %}Fraud score result{% endblock %}
+{% block topbar_title %}Fraud Detection{% endblock %}
+{% block topbar_crumb %}Score · Result{% endblock %}
+
+{% block content %}
+
+<div class="page-head">
+    <h1>Transaction scored</h1>
+    <p>Model output and the drivers behind it.</p>
+</div>
+
+<div class="result-hero">
+    <div class="result-prob band-{{ result.risk_band|lower }}">
+        <div class="result-prob__label">Fraud probability</div>
+        <div class="result-prob__value">
+            {{ result.probability|floatformat:4 }}
+        </div>
+        <div class="result-prob__gauge">
+            <span class="result-prob__gauge-fill"
+                  style="width:{% widthratio result.probability 1 100 %}%"></span>
+            <span class="result-prob__gauge-threshold"
+                  style="left:{% widthratio result.threshold 1 100 %}%"></span>
+        </div>
+        <span class="result-prob__band">
+            {{ result.risk_band }}
+        </span>
+    </div>
+
+    <div class="result-summary">
+        <h3>Decision</h3>
+        <div class="decision decision--inline decision--{{ result.risk_band|lower }}">
+            <div>
+                <div class="decision__label">Action</div>
+                <div class="decision__action">
+                    {% if result.risk_band == "CRITICAL" %}
+                        Block &amp; step-up authentication
+                    {% elif result.risk_band == "HIGH" %}
+                        Require manual review
+                    {% elif result.risk_band == "MEDIUM" %}
+                        Monitor / soft prompt
+                    {% else %}
+                        Approve silently
+                    {% endif %}
+                </div>
+            </div>
+            <div class="decision__note">
+                {% if result.decision == "FLAGGED" %}
+                    The model's probability ({{ result.probability|floatformat:4 }})
+                    is above the operational threshold
+                    ({{ result.threshold|floatformat:4 }}).
+                {% else %}
+                    The model's probability ({{ result.probability|floatformat:4 }})
+                    is below the operational threshold
+                    ({{ result.threshold|floatformat:4 }}).
+                {% endif %}
+            </div>
+        </div>
+
+        {% if result.top_features %}
+        <h3 style="margin-top:24px">Why this score</h3>
+        <ul class="factor-list">
+            {% for f in result.top_features %}
+                <li class="factor">
+                    <div>
+                        <div class="factor__name">{{ f.feature }}</div>
+                        {% if f.value is not None %}
+                            <div class="factor__value">value = {{ f.value }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="factor__impact
+                        {% if f.shap > 0 %}factor__impact--up{% else %}factor__impact--down{% endif %}">
+                        {% if f.shap > 0 %}+{% endif %}{{ f.shap|floatformat:4 }}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+        <p class="factor-note">
+            SHAP values: <span class="up">positive</span> pushes toward fraud,
+            <span class="down">negative</span> pulls toward legitimate.
+        </p>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card__title">Transaction summary</div>
+    <div class="card__sub">The values you entered, plus the derived features fed to the model.</div>
+
+    <div class="computed-grid">
+        <div class="computed-item">
+            <div class="computed-item__label">Amount</div>
+            <div class="computed-item__value">K{{ payload.amount|floatformat:2 }}</div>
+        </div>
+        <div class="computed-item">
+            <div class="computed-item__label">Type</div>
+            <div class="computed-item__value">{{ payload.transaction_type }}</div>
+        </div>
+        <div class="computed-item">
+            <div class="computed-item__label">Channel</div>
+            <div class="computed-item__value">{{ payload.channel }}</div>
+        </div>
+        <div class="computed-item">
+            <div class="computed-item__label">Hour</div>
+            <div class="computed-item__value">{{ payload.transaction_hour }}:00</div>
+        </div>
+        <div class="computed-item">
+            <div class="computed-item__label">Country</div>
+            <div class="computed-item__value">{{ payload.transaction_country }}</div>
+        </div>
+        <div class="computed-item">
+            <div class="computed-item__label">Amount / income</div>
+            <div class="computed-item__value">{{ payload.amount_vs_monthly_income|floatformat:3 }}</div>
+        </div>
+        <div class="computed-item">
+            <div class="computed-item__label">Transactions in last 1h</div>
+            <div class="computed-item__value">{{ payload.transactions_last_1h }}</div>
+        </div>
+        <div class="computed-item">
+            <div class="computed-item__label">New device</div>
+            <div class="computed-item__value">{% if payload.is_new_device %}Yes{% else %}No{% endif %}</div>
+        </div>
+    </div>
+
+    <div class="form-actions" style="margin-top:32px">
+        <a href="{% url 'fraud_portal:assessment' %}" class="btn">
+            <i class="fas fa-rotate-left"></i>
+            Score another
+        </a>
+        <a href="{% url 'fraud_portal:model' %}" class="btn btn--ghost">
+            <i class="fas fa-chart-line"></i>
+            Model performance
+        </a>
+    </div>
+</div>
+
+{% endblock %}
